@@ -66,7 +66,6 @@ export function useUpdateEventMutation() {
       return { previousDetail, previousLists };
     },
 
-    // Якщо сервер повернув помилку — відкочуємо оптимістичні зміни
     onError: (_error, { id }, context) => {
       if (context?.previousDetail) {
         queryClient.setQueryData(eventKeys.detail(id), context.previousDetail);
@@ -87,7 +86,7 @@ export function useDeleteEventMutation() {
   return useMutation({
     mutationFn: (id: number) => eventRepository.delete(id),
 
-    // Optimistic Update: прибираємо подію зі списку одразу при кліку
+
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: eventKeys.lists() });
 
@@ -106,7 +105,7 @@ export function useDeleteEventMutation() {
           };
         }
       );
-
+      
       removeCustomEvent(id);
 
       return { previousLists };

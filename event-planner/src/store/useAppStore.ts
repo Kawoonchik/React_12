@@ -23,12 +23,18 @@ interface AppStoreState {
 
   theme: ThemeMode;
   toggleTheme: () => void;
+
+
+  toastMessage: string | null;
+  showToast: (message: string) => void;
 }
 
 function applyThemeClass(theme: ThemeMode) {
   if (typeof document === 'undefined') return;
   document.documentElement.classList.toggle('dark', theme === 'dark');
 }
+
+let toastTimer: ReturnType<typeof setTimeout> | null = null;
 
 export const useAppStore = create<AppStoreState>()(
   persist(
@@ -80,9 +86,24 @@ export const useAppStore = create<AppStoreState>()(
           applyThemeClass(nextTheme);
           return { theme: nextTheme };
         }),
+
+      toastMessage: null,
+      showToast: (message) => {
+        if (toastTimer) clearTimeout(toastTimer);
+        set({ toastMessage: message });
+        toastTimer = setTimeout(() => {
+          set({ toastMessage: null });
+        }, 3000);
+      },
     }),
     {
       name: 'event-planner-storage',
+      partialize: (state) => ({
+        favoriteIds: state.favoriteIds,
+        registrations: state.registrations,
+        customEvents: state.customEvents,
+        theme: state.theme,
+      }),
       onRehydrateStorage: () => (state) => {
         if (state) {
           applyThemeClass(state.theme);
